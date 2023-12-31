@@ -18,34 +18,34 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
   </thead>
   <tbody>
     <tr>
-      <th>JS Framework</th>
+      <th align="left">JS Framework</th>
       <td><a href="https://github.com/localvoid/ivi">ivi</a></td>
       <td><a href="https://github.com/solidjs/solid">SolidJS</a></td>
     </tr>
     <tr>
-      <th>CSV Parsing</th>
+      <th align="left">CSV Parsing</th>
       <td><a href="https://github.com/leeoniya/uDSV">μDSV</a></td>
       <td><a href="https://github.com/uwdata/arquero/blob/main/src/format/parse/parse-delimited.js">Arquero (d3-dsv)</a></td>
     </tr>
     <tr>
-      <th>Virtualization</th>
+      <th align="left">Virtualization</th>
       <td>own (&lt; 0.5 KB)</td>
       <td><a href="https://github.com/tanstack/table">TanStack/table</a> <a href="https://bundlephobia.com/package/@tanstack/solid-table@8.11.2">(~60 KB)</a></td>
     </tr>
     <tr>
-      <th>Sorting / filtering</th>
+      <th align="left">Sorting / filtering</th>
       <td>own (&lt; 0.5 KB)</td>
       <td><a href="https://github.com/uwdata/arquero">Arquero <a hfref="https://bundlephobia.com/package/arquero@5.4.0">(~400 KB)</a></td>
     </tr>
     <tr>
-      <th>localStorage Persistence</th>
+      <th align="left">localStorage Persistence</th>
       <td>no</td>
       <td>yes</td>
     </tr>
   </tbody>
   <tfoot>
     <tr>
-      <th>Bundle size</th>
+      <th align="left">Bundle size</th>
       <td>16 KB</td>
       <td>416 KB</td>
     </tr>

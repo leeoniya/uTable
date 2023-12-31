@@ -54,7 +54,8 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
 
 Both projects are very early, and the choices made by Hippotable are totally sensible, considering its plans to leverage much more of the Arquero library.
 I have, however, previously tested some Arquero functions (such as grouping) and found its performance to be lacking in multiple areas.
-This project has similar aspirations to Hippotable, but with greater scruitiny on external dependencies, and will always roll its own solutions when there are significant performance and/or size benefits.
+
+uTable has similar goals as Hippotable, but [perhaps] with greater scruitiny on external dependencies, and will always roll its own solutions when there are significant performance and/or size benefits.
 
 ---
 ### Features

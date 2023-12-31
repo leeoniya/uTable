@@ -73,14 +73,10 @@ This project has similar aspirations to Hippotable, but with greater scruitiny o
 2. Install dependencies: `npm install`
 3. Build bundle: `npm run build`
 4. Run an http server in repo root that can serve static files, for example:
-  1. Install: `npm i -g http-server`
-  2. Run `http-server` in repo root
+    1. Install: `npm i -g http-server`
+    2. Run `http-server` in repo root
 5. Open `http://localhost:8080/`
 6. Drag/drop a CSV file into the UI
-
-```
-npm i
-```
 
 ---
 ### Performance

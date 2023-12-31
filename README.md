@@ -35,7 +35,7 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
     <tr>
       <th align="left">Sorting / filtering</th>
       <td>own (&lt; 0.5 KB)</td>
-      <td><a href="https://github.com/uwdata/arquero">Arquero <a hfref="https://bundlephobia.com/package/arquero@5.4.0">(~400 KB)</a></td>
+      <td><a href="https://github.com/uwdata/arquero">Arquero</a> <a href="https://bundlephobia.com/package/arquero@5.4.0">(~400 KB)</a></td>
     </tr>
     <tr>
       <th align="left">localStorage Persistence</th>

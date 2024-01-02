@@ -34,7 +34,7 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
     </tr>
     <tr>
       <th align="left">Sorting / filtering</th>
-      <td>own (&lt; 0.5 KB)</td>
+      <td>own + <a href="https://github.com/leeoniya/uExpr">μExpr</a> (&lt; 4 KB)</td>
       <td><a href="https://github.com/uwdata/arquero">Arquero</a> <a href="https://bundlephobia.com/package/arquero@5.4.0">(~400 KB)</a></td>
     </tr>
     <tr>
@@ -46,7 +46,7 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
   <tfoot>
     <tr>
       <th align="left">Bundle size</th>
-      <td>16 KB</td>
+      <td>20 KB</td>
       <td>416 KB</td>
     </tr>
   </tfoot>
@@ -55,7 +55,7 @@ It draws much inspiration from [thoughtspile/hippotable](https://github.com/thou
 Both projects are very early, and the choices made by Hippotable are totally sensible, considering its plans to leverage much more of the Arquero library.
 I have, however, previously tested some Arquero functions (such as grouping) and found its performance to be lacking in multiple areas.
 
-uTable has similar goals as Hippotable, but [perhaps] with greater scruitiny on external dependencies, and will always roll its own solutions when there are significant performance and/or size benefits.
+uTable has similar goals as Hippotable, but [perhaps] with greater scrutiny on external dependencies, and will always roll its own solutions when there are significant performance and/or size benefits.
 
 ---
 ### Features

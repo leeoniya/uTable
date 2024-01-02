@@ -1,6 +1,11 @@
 import { update, component, getProps, createRoot, useState, invalidate, useEffect } from "ivi";
 import { htm as html } from "@ivi/htm";
 import { Schema, inferSchema, initParser } from "udsv";
+import { Op, Expr, compileFilter } from 'uexpr';
+
+type HTMLElementEvent<T extends HTMLElement> = Event & {
+  target: T;
+}
 
 interface Table {
   schema: Schema;
@@ -49,6 +54,16 @@ const compileSorterStringTuples = (pos: number[], dir: number[], simple = false)
   return new Function('cmp', `
     return (a, b) => ${body};
   `)(cmp);
+};
+
+const compileMatcherStringTuples = (rules: Expr[]) => {
+  let nonEmpty = rules.filter(r => r[2] != '');
+
+  if (nonEmpty.length == 0)
+    return null;
+
+  // todo: make empty value acceptable, (isNull, falsy, cmp against explicit empty, etc)
+  return compileFilter<string[]>(['&&', ...nonEmpty]);
 };
 
 const CSVDropper = component<CSVDropperProps>((c) => {
@@ -101,14 +116,18 @@ const Table = component<Table>((c) => {
   let table = getProps(c);
   let cols = table.schema.cols;
 
-  // let sortedIdxs = table.data.map((r, i) => i);
+  // this can come from url params? cookies?
+  let filts: Expr[] = cols.map((c, ci) => ['*', `[${ci}]`, '']);
+  let sortDir: number[] = Array(cols.length).fill(0);
+  let sortPos: number[] = Array(cols.length).fill(0);
 
-  // sorted, filtered, etc.
-  let data = table.data;
+  // compiled fns
+  let sortFn;
+  let filtFn;
 
-
-  let sortDir: number[] = Array(100).fill(0);
-  let sortPos: number[] = Array(100).fill(0);
+  let dataFilt = table.data;
+  let dataSort = table.data;
+  let data     = table.data; // final sorted, filtered, grouped
 
   let onClickCol = (idx: number) => {
     let dir = sortDir[idx];
@@ -132,17 +151,44 @@ const Table = component<Table>((c) => {
     sortDir[idx] = dir;
     sortPos[idx] = pos;
 
-    let sortFn = compileSorterStringTuples(sortPos, sortDir, true);
+    reSort();
+  };
+
+  let reFilt = () => {
+    filtFn = compileMatcherStringTuples(filts);
+
+    if (filtFn == null)
+      dataFilt = table.data;
+    else
+      dataFilt = filtFn(table.data);
+
+    reSort();
+    invalidate(c);
+  };
+
+  let reSort = () => {
+    sortFn = compileSorterStringTuples(sortPos, sortDir, true);
 
     if (sortFn == null)
-      data = table.data;
+      data = dataSort = dataFilt;
     else
-      data = table.data.slice().sort(sortFn);
+      data = dataSort = dataFilt.slice().sort(sortFn);
+
+    // when to do this?
+    dom.scrollTop = 0;
 
     invalidate(c);
   };
 
-  // filtered /sorted idxs?
+  let onChangeFiltOp = (idx: number, op: Op) => {
+    filts[idx][0] = op;
+    reFilt();
+  };
+
+  let onChangeFiltVal = (idx: number, val: string) => {
+    filts[idx][2] = val;
+    reFilt();
+  };
 
   // approx row hgt to estimate how many to render based on viewport size
   let rowHgt = 0;
@@ -157,12 +203,13 @@ const Table = component<Table>((c) => {
   let sync = () => {
     let rFull = dom.getBoundingClientRect();
     let rThead = dom.querySelector('thead')!.getBoundingClientRect();
-    let tbody = dom.querySelector('tbody')!;
-    let rTbody = tbody.getBoundingClientRect();
     let viewHgt = rFull.height - rThead.height;
 
     // set once during init from probed/rendered chunk
     if (rowHgt == 0) {
+      let tbody = dom.querySelector('tbody')!;
+      let rTbody = tbody.getBoundingClientRect();
+
       rowHgt = rTbody.height / chunkLen;
 
       let i = 0;
@@ -186,6 +233,7 @@ const Table = component<Table>((c) => {
   };
 
   useEffect(c, () => {
+    // TODO: ensure this is only for vt scroll and resize, and handle hz resize independently (adjust col widths? only when table width 100%?)
     dom.addEventListener('scroll', () => setIdx0());
 
     let resizeObserver = new ResizeObserver(() => {
@@ -201,6 +249,8 @@ const Table = component<Table>((c) => {
   })();
 
   let onClicks = cols.map((c, i) => () => onClickCol(i));
+  let onChangeFiltOps = cols.map((c, i) => (e: HTMLElementEvent<HTMLSelectElement>) => onChangeFiltOp(i, e.target.value as Op));
+  let onChangeFiltVals = cols.map((c, i) => (e: HTMLElementEvent<HTMLInputElement>) => onChangeFiltVal(i, e.target.value));
 
   return () => {
     let chunk = data.slice(idx0, idx0 + chunkLen);
@@ -223,13 +273,15 @@ const Table = component<Table>((c) => {
               `)}
             </tr>
             <tr class="col-filts">
-              ${cols.map(c => html`
+              ${cols.map((c, ci) => html`
                 <th>
-                  <select>
-                    <option>==</option>
-                    <option>^</option>
+                  <select @change=${onChangeFiltOps[ci]}>
+                    <option title="Contains">*</option>
+                    <option title="Starts with">^</option>
+                    <option title="NOT Contains">!*</option>
+                    <option title="NOT Starts with">!^</option>
                   </select>
-                  <input type="text" placeholder="Filter..."/>
+                  <input type="text" placeholder="Filter..." @input=${onChangeFiltVals[ci]}/>
                 </th>
               `)}
             </tr>

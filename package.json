@@ -13,7 +13,8 @@
   "dependencies": {
     "@ivi/htm": "3.0.2",
     "ivi": "3.0.2",
-    "udsv": "leeoniya/uDSV#bd533b0559a941c6d7ade83d25c2f72db506b1c8"
+    "udsv": "leeoniya/uDSV#bd533b0559a941c6d7ade83d25c2f72db506b1c8",
+    "uexpr": "leeoniya/uExpr#404558e29b298d903a7b85a1de45e856f94de7c3"
   },
   "devDependencies": {
     "@ivi/rollup-plugin": "3.0.4",

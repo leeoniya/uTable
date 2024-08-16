@@ -12,17 +12,17 @@
   },
   "dependencies": {
     "@ivi/htm": "3.0.2",
-    "ivi": "3.0.2",
-    "udsv": "leeoniya/uDSV#bd533b0559a941c6d7ade83d25c2f72db506b1c8",
+    "ivi": "3.0.3",
+    "udsv": "leeoniya/uDSV#3bdf28bee326217137e1d3638891290e6b121568",
     "uexpr": "leeoniya/uExpr#404558e29b298d903a7b85a1de45e856f94de7c3"
   },
   "devDependencies": {
     "@ivi/rollup-plugin": "3.0.4",
     "@rollup/plugin-node-resolve": "15.2.3",
     "@rollup/plugin-terser": "0.4.4",
-    "@rollup/plugin-typescript": "11.1.5",
-    "rollup": "4.9.2",
-    "tslib": "2.6.2",
-    "typescript": "5.3.3"
+    "@rollup/plugin-typescript": "11.1.6",
+    "rollup": "4.20.0",
+    "tslib": "2.6.3",
+    "typescript": "5.5.4"
   }
 }

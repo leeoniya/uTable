@@ -4,15 +4,6 @@ import { ivi } from "@ivi/rollup-plugin";
 import terser from "@rollup/plugin-terser";
 import fs from 'fs';
 
-const copyCss = () => {
-  return {
-    name: 'copyCss',
-    closeBundle: () => {
-      fs.copyFileSync('./src/main.css', './dist/main.css');
-    },
-  }
-};
-
 const TERSER_OPTIONS = {
   compress: {
     inline: 0,
@@ -23,9 +14,20 @@ const TERSER_OPTIONS = {
   module: true,
 };
 
+const name = 'main';
+
+const copyCss = () => {
+  return {
+    name: 'copyCss',
+    closeBundle: () => {
+      fs.copyFileSync(`./src/${name}.css`, './dist/styles.css');
+    },
+  }
+};
+
 export default [
   {
-    input: "./src/main.ts",
+    input: `./src/${name}.ts`,
     output: {
       file: "./dist/bundle.min.js",
       format: "es",

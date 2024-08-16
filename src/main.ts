@@ -1,6 +1,6 @@
 import { update, component, getProps, createRoot, useState, invalidate, useEffect } from "ivi";
 import { htm as html } from "@ivi/htm";
-import { Schema, inferSchema, initParser } from "udsv";
+import { Schema, SchemaColumnType, inferSchema, initParser, type SchemaColumn } from "udsv";
 import { Op, Expr, compileFilter } from 'uexpr';
 
 type HTMLElementEvent<T extends HTMLElement> = Event & {
@@ -28,7 +28,7 @@ type TupleSortFn = (a: string[], b: string[]) => number;
 
 const cmp = new Intl.Collator('en', { numeric: true, sensitivity: 'base' }).compare;
 
-const compileSorterStringTuples = (pos: number[], dir: number[], simple = false): TupleSortFn | null => {
+const compileSorterTuples = (cols: SchemaColumn[], pos: number[], dir: number[], simple = false): TupleSortFn | null => {
   let sorts: Sorter[] = [];
 
   for (let ci = 0; ci < dir.length; ci++) {
@@ -43,12 +43,15 @@ const compileSorterStringTuples = (pos: number[], dir: number[], simple = false)
 
   // todo: handle nulls?
   let body = sorts.map(s => {
+    let col = cols[s[1]];
     let a = `a[${s[1]}]`;
     let b = `b[${s[1]}]`;
 
-    return simple ?
-      `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
+    return (
+      col.type == SchemaColumnType.Number ? `${s[2]} * (${a} - ${b})` :
+      simple                              ? `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
       `${s[2]} * cmp(${a}, ${b})`
+    );
   }).join(' || ');
 
   return new Function('cmp', `
@@ -62,8 +65,18 @@ const compileMatcherStringTuples = (rules: Expr[]) => {
   if (nonEmpty.length == 0)
     return null;
 
+  // add null handling, maybe for strings uExpr should parse as '' and nums as 0?
+  let rules2 = ['&&',
+    ...nonEmpty.flatMap(r => [
+        ['!==', r[1], null],
+        r,
+    ])
+  ];
+
+  // add uFuzzy, case insensitivity?
+
   // todo: make empty value acceptable, (isNull, falsy, cmp against explicit empty, etc)
-  return compileFilter<string[]>(['&&', ...nonEmpty]);
+  return compileFilter<string[]>(rules2);
 };
 
 const CSVDropper = component<CSVDropperProps>((c) => {
@@ -76,13 +89,21 @@ const CSVDropper = component<CSVDropperProps>((c) => {
 
         if (file.name.endsWith(".csv")) {
           file.text().then((text) => {
-            // console.time("parse");
+            console.time("parse");
 
-            let s = inferSchema(text);
+            let s = inferSchema(text, {}, 100);
+
+            // we dont need to parse dates except during display? they can be sorted by timestamp?
+            s.cols.forEach(c => {
+              if (c.type === SchemaColumnType.Date)
+                  c.type = SchemaColumnType.String;
+            });
+
             let p = initParser(s);
-            let d = p.stringArrs(text);
+            // let d = p.stringArrs(text);
+            let d = p.typedArrs(text);
 
-            // console.timeEnd("parse");
+            console.timeEnd("parse");
 
             getProps(c).setData({schema: s, data: d});
           });
@@ -167,7 +188,7 @@ const Table = component<Table>((c) => {
   };
 
   let reSort = () => {
-    sortFn = compileSorterStringTuples(sortPos, sortDir, true);
+    sortFn = compileSorterTuples(cols, sortPos, sortDir, true);
 
     if (sortFn == null)
       data = dataSort = dataFilt;

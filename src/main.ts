@@ -1,6 +1,6 @@
 import { update, component, getProps, createRoot, useState, invalidate, useEffect } from "ivi";
 import { htm as html } from "@ivi/htm";
-import { Schema, SchemaColumnType, inferSchema, initParser, type SchemaColumn } from "udsv";
+import { Schema, inferSchema, initParser, type SchemaColumn } from "udsv";
 import { Op, Expr, compileFilter } from 'uexpr';
 
 type HTMLElementEvent<T extends HTMLElement> = Event & {
@@ -48,9 +48,9 @@ const compileSorterTuples = (cols: SchemaColumn[], pos: number[], dir: number[],
     let b = `b[${s[1]}]`;
 
     return (
-      col.type == SchemaColumnType.Number ? `${s[2]} * (${a} - ${b})` :
-      simple                              ? `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
-      `${s[2]} * cmp(${a}, ${b})`
+      col.type == 'n' ? `${s[2]} * (${a} - ${b})` :
+      simple          ? `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
+                        `${s[2]} * cmp(${a}, ${b})`
     );
   }).join(' || ');
 
@@ -95,8 +95,8 @@ const CSVDropper = component<CSVDropperProps>((c) => {
 
             // we dont need to parse dates except during display? they can be sorted by timestamp?
             s.cols.forEach(c => {
-              if (c.type === SchemaColumnType.Date)
-                  c.type = SchemaColumnType.String;
+              if (c.type === 'd')
+                  c.type = 's';
             });
 
             let p = initParser(s);

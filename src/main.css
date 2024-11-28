@@ -69,6 +69,7 @@ tbody tr:hover {
 .col-names th {
   cursor: pointer;
   padding: 6px;
+  user-select: none;
 }
 
 .col-filts th {
@@ -82,7 +83,7 @@ tbody tr:hover {
 }
 
 .col-filts input {
-  padding-left: 45px;
+  padding-left: 40px;
   width: 100%;
   min-width: 100px;
 }

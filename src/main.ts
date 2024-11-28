@@ -150,13 +150,19 @@ const Table = component<Table>((c) => {
   let dataSort = table.data;
   let data     = table.data; // final sorted, filtered, grouped
 
-  let onClickCol = (idx: number) => {
+  let onClickCol = (idx: number, shiftKey: boolean) => {
     let dir = sortDir[idx];
     let pos = sortPos[idx];
 
     if (dir == 1)
       dir = -1;
     else if (dir == 0) {
+      if (!shiftKey) {
+        // reset all sorts
+        sortPos.fill(0);
+        sortDir.fill(0);
+      }
+
       dir = 1;
       pos = Math.max(...sortPos) + 1;
     }
@@ -188,7 +194,7 @@ const Table = component<Table>((c) => {
   };
 
   let reSort = () => {
-    sortFn = compileSorterTuples(cols, sortPos, sortDir, true);
+    sortFn = compileSorterTuples(cols, sortPos, sortDir);
 
     if (sortFn == null)
       data = dataSort = dataFilt;
@@ -269,7 +275,7 @@ const Table = component<Table>((c) => {
     };
   })();
 
-  let onClicks = cols.map((c, i) => () => onClickCol(i));
+  let onClicks = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
   let onChangeFiltOps = cols.map((c, i) => (e: HTMLElementEvent<HTMLSelectElement>) => onChangeFiltOp(i, e.target.value as Op));
   let onChangeFiltVals = cols.map((c, i) => (e: HTMLElementEvent<HTMLInputElement>) => onChangeFiltVal(i, e.target.value));
 

@@ -1,4 +1,4 @@
-import { update, component, getProps, createRoot, useState, invalidate, useEffect } from "ivi";
+import { update, component, getProps, createRoot, useState, invalidate, useEffect, List } from "ivi";
 import { htm as html } from "@ivi/htm";
 import { Schema, inferSchema, initParser, type SchemaColumn } from "udsv";
 import { Op, Expr, compileFilter } from 'uexpr';
@@ -315,7 +315,7 @@ const Table = component<Table>((c) => {
           </thead>
           <tbody>
             <tr ~height=${`${padTop}px`}/>
-            ${chunk.map(row => html`
+            ${List(chunk, (row, i) => idx0 + i, row => html`
               <tr>
                 ${row.map((col) => html`<td .textContent=${col}/>`)}
               </tr>

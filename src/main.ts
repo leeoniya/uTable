@@ -63,7 +63,7 @@ const compileMatcherStringTuples = (rules: Expr[]) => {
   let nonEmpty = rules.filter(r => r[2] != '');
 
   if (nonEmpty.length == 0)
-    return null;
+    return (data: string[][]) => data;
 
   // add null handling, maybe for strings uExpr should parse as '' and nums as 0?
   let rules2 = ['&&',
@@ -71,7 +71,7 @@ const compileMatcherStringTuples = (rules: Expr[]) => {
         ['!==', r[1], null],
         r,
     ])
-  ];
+  ] as unknown as Expr;
 
   // add uFuzzy, case insensitivity?
 
@@ -142,13 +142,8 @@ const Table = component<Table>((c) => {
   let sortDir: number[] = Array(cols.length).fill(0);
   let sortPos: number[] = Array(cols.length).fill(0);
 
-  // compiled fns
-  let sortFn;
-  let filtFn;
-
   let dataFilt = table.data;
   let dataSort = table.data;
-  let data     = table.data; // final sorted, filtered, grouped
 
   let onClickCol = (idx: number, shiftKey: boolean) => {
     let dir = sortDir[idx];
@@ -182,24 +177,17 @@ const Table = component<Table>((c) => {
   };
 
   let reFilt = () => {
-    filtFn = compileMatcherStringTuples(filts);
-
-    if (filtFn == null)
-      dataFilt = table.data;
-    else
-      dataFilt = filtFn(table.data);
-
+    dataFilt = compileMatcherStringTuples(filts)(table.data);
     reSort();
-    invalidate(c);
   };
 
   let reSort = () => {
-    sortFn = compileSorterTuples(cols, sortPos, sortDir);
+    let sortFn = compileSorterTuples(cols, sortPos, sortDir);
 
     if (sortFn == null)
-      data = dataSort = dataFilt;
+      dataSort = dataFilt;
     else
-      data = dataSort = dataFilt.slice().sort(sortFn);
+      dataSort = dataFilt.slice().sort(sortFn);
 
     // when to do this?
     dom.scrollTop = 0;
@@ -221,7 +209,7 @@ const Table = component<Table>((c) => {
   let rowHgt = 0;
   let viewRows = 0;
   // min chunk length and used to estimate row height
-  let chunkLen = Math.min(100, data.length);
+  let chunkLen = Math.min(100, table.data.length);
   let idx0 = 0;
   let colWids = Array(cols.length).fill(null);
 
@@ -280,9 +268,9 @@ const Table = component<Table>((c) => {
   let onChangeFiltVals = cols.map((c, i) => (e: HTMLElementEvent<HTMLInputElement>) => onChangeFiltVal(i, e.target.value));
 
   return () => {
-    let chunk = data.slice(idx0, idx0 + chunkLen);
+    let chunk = dataSort.slice(idx0, idx0 + chunkLen);
     // TODO: this will only change with filters
-    let totalHgt = data.length * rowHgt;
+    let totalHgt = dataSort.length * rowHgt;
 
     let padTop = rowHgt == 0 ? 0 : idx0 * rowHgt;
     let padBtm = rowHgt == 0 ? 0 : totalHgt - Math.min(totalHgt, rowHgt * (idx0 + chunkLen));

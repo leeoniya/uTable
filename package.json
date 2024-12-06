@@ -11,13 +11,12 @@
     "build": "rollup -c"
   },
   "dependencies": {
-    "@ivi/htm": "3.0.2",
-    "ivi": "3.0.3",
+    "ivi": "4.0.0",
     "udsv": "0.6.0",
     "uexpr": "leeoniya/uExpr#404558e29b298d903a7b85a1de45e856f94de7c3"
   },
   "devDependencies": {
-    "@ivi/rollup-plugin": "3.0.4",
+    "@ivi/rollup-plugin": "4.0.0",
     "@rollup/plugin-node-resolve": "15.3.0",
     "@rollup/plugin-terser": "0.4.4",
     "@rollup/plugin-typescript": "12.1.1",

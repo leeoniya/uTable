@@ -1,5 +1,4 @@
-import { update, component, getProps, createRoot, useState, invalidate, useEffect, List } from "ivi";
-import { htm as html } from "@ivi/htm";
+import { html, update, component, getProps, createRoot, useState, invalidate, useEffect, List } from "ivi";
 import { Schema, inferSchema, initParser, type SchemaColumn } from "udsv";
 import { Op, Expr, compileFilter } from 'uexpr';
 

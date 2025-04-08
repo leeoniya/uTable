@@ -375,7 +375,7 @@ const Table = component<Table>((c) => {
           </thead>
           <tbody>
             <tr ~height=${`${padTop}px`}/>
-            ${List(chunk, (row, i) => idx0 + i, Row)}
+            ${List(chunk, row => row, Row)}
             <tr ~height=${`${padBtm}px`}/>
           </tbody>
         </table>

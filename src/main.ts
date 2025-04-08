@@ -19,6 +19,20 @@ interface Table {
   // faceters: (enum values)
 }
 
+function haltEvent(e: Event) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+}
+
+function onWinCap(type: string, fn: EventListener) {
+  window.addEventListener(type, fn, {capture: true});
+}
+
+function offWinCap(type: string, fn: EventListener) {
+  window.removeEventListener(type, fn, {capture: true});
+}
+
 interface CSVDropperProps {
   setData: (table: Table | null) => void;
 }
@@ -128,6 +142,16 @@ const CSVDropper = component<CSVDropperProps>((c) => {
     </div>
   `;
 });
+
+// const HeaderCell = component<Table>((c) => {
+//   return  (props) => html`
+//     <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'}>
+//       <div class="col-resize" @mousedown=${onDowns[i]} />
+//       ${c.name}
+//       ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}
+//     </th>
+//   `;
+// });
 
 const Table = component<Table>((c) => {
   let dom: HTMLElement;
@@ -246,6 +270,11 @@ const Table = component<Table>((c) => {
     }
   };
 
+  // useLayoutEffect(c, () => {
+  //   for (let colEl of dom.querySelectorAll('.col-names th'))
+  //     console.log(colEl.getBoundingClientRect().width);
+  // })();
+
   useEffect(c, () => {
     // TODO: ensure this is only for vt scroll and resize, and handle hz resize independently (adjust col widths? only when table width 100%?)
     dom.addEventListener('scroll', () => setIdx0());
@@ -266,6 +295,49 @@ const Table = component<Table>((c) => {
   let onChangeFiltOps = cols.map((c, i) => (e: HTMLElementEvent<HTMLSelectElement>) => onChangeFiltOp(i, e.target.value as Op));
   let onChangeFiltVals = cols.map((c, i) => (e: HTMLElementEvent<HTMLInputElement>) => onChangeFiltVal(i, e.target.value));
 
+  // todo: make configurable per column
+  const min = 50;
+  const max = 500;
+
+  let onDowns = cols.map((col, i) => (e: MouseEventInit) => {
+    if (e.button !== 0)
+      return;
+
+    let fromX = e.clientX!;
+    let fromWid = colWids[i];
+
+    let onMove: EventListener = (e: MouseEventInit) => {
+      let newWid = fromWid + (e.clientX! - fromX);
+
+      // clamp
+      if (newWid > max || newWid < min)
+        return;
+
+      // ensure non-zero here
+
+      colWids[i] = newWid;
+
+      // TODO: invaldate only header component, or just th component?
+      invalidate(c);
+    };
+
+    let onClick: EventListener = (e: MouseEventInit) => {
+      offWinCap('mousemove', onMove);
+      offWinCap('click', onClick);
+      haltEvent(e as Event);
+    };
+
+    onWinCap('mousemove', onMove);
+    onWinCap('click', onClick);
+    haltEvent(e as Event);
+  });
+
+  const Row  = component<string[]>((c) => row => html`<tr>${row.map(Cell)}</tr>`, () => true);
+  const Cell = component<string  >((c) => col => html`<td .textContent=${col}/>`, () => true);
+
+  // col resize/drag
+  // let onMouseDowns = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
+
   return () => {
     let chunk = dataSort.slice(idx0, idx0 + chunkLen);
     // TODO: this will only change with filters
@@ -281,6 +353,7 @@ const Table = component<Table>((c) => {
             <tr class="col-names">
               ${cols.map((c, i) => html`
                 <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'}>
+                  <div class="col-resize" @mousedown=${onDowns[i]} />
                   ${c.name}
                   ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}
                 </th>
@@ -302,11 +375,7 @@ const Table = component<Table>((c) => {
           </thead>
           <tbody>
             <tr ~height=${`${padTop}px`}/>
-            ${List(chunk, (row, i) => idx0 + i, row => html`
-              <tr>
-                ${row.map((col) => html`<td .textContent=${col}/>`)}
-              </tr>
-            `)}
+            ${List(chunk, (row, i) => idx0 + i, Row)}
             <tr ~height=${`${padBtm}px`}/>
           </tbody>
         </table>

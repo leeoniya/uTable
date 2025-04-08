@@ -333,7 +333,7 @@ const Table = component<Table>((c) => {
   });
 
   const Row  = component<string[]>((c) => row => html`<tr>${row.map(Cell)}</tr>`, () => true);
-  const Cell = component<string  >((c) => col => html`<td .textContent=${col}/>`, () => true);
+  const Cell = component<string  >((c) => col => html`<td tabindex="0" .textContent=${col}/>`, () => true);
 
   // col resize/drag
   // let onMouseDowns = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
@@ -352,7 +352,7 @@ const Table = component<Table>((c) => {
           <thead>
             <tr class="col-names">
               ${cols.map((c, i) => html`
-                <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'}>
+                <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'} tabindex="0">
                   <div class="col-resize" @mousedown=${onDowns[i]} />
                   ${c.name}
                   ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}
@@ -361,7 +361,7 @@ const Table = component<Table>((c) => {
             </tr>
             <tr class="col-filts">
               ${cols.map((c, ci) => html`
-                <th>
+                <th tabindex="0">
                   <select @change=${onChangeFiltOps[ci]}>
                     <option title="Contains">*</option>
                     <option title="Starts with">^</option>

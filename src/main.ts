@@ -1,6 +1,5 @@
-import { update, component, getProps, createRoot, useState, invalidate, useEffect } from "ivi";
-import { htm as html } from "@ivi/htm";
-import { Schema, SchemaColumnType, inferSchema, initParser, type SchemaColumn } from "udsv";
+import { html, update, component, getProps, createRoot, useState, invalidate, useEffect, List } from "ivi";
+import { Schema, inferSchema, initParser, type SchemaColumn } from "udsv";
 import { Op, Expr, compileFilter } from 'uexpr';
 
 type HTMLElementEvent<T extends HTMLElement> = Event & {
@@ -18,6 +17,20 @@ interface Table {
   // sorters:
   // groupers:
   // faceters: (enum values)
+}
+
+function haltEvent(e: Event) {
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+}
+
+function onWinCap(type: string, fn: EventListener) {
+  window.addEventListener(type, fn, {capture: true});
+}
+
+function offWinCap(type: string, fn: EventListener) {
+  window.removeEventListener(type, fn, {capture: true});
 }
 
 interface CSVDropperProps {
@@ -48,9 +61,9 @@ const compileSorterTuples = (cols: SchemaColumn[], pos: number[], dir: number[],
     let b = `b[${s[1]}]`;
 
     return (
-      col.type == SchemaColumnType.Number ? `${s[2]} * (${a} - ${b})` :
-      simple                              ? `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
-      `${s[2]} * cmp(${a}, ${b})`
+      col.type == 'n' ? `${s[2]} * (${a} - ${b})` :
+      simple          ? `${s[2]} * (${a} > ${b} ? 1 : ${a} < ${b} ? -1 : 0)` :
+                        `${s[2]} * cmp(${a}, ${b})`
     );
   }).join(' || ');
 
@@ -63,7 +76,7 @@ const compileMatcherStringTuples = (rules: Expr[]) => {
   let nonEmpty = rules.filter(r => r[2] != '');
 
   if (nonEmpty.length == 0)
-    return null;
+    return (data: string[][]) => data;
 
   // add null handling, maybe for strings uExpr should parse as '' and nums as 0?
   let rules2 = ['&&',
@@ -71,7 +84,7 @@ const compileMatcherStringTuples = (rules: Expr[]) => {
         ['!==', r[1], null],
         r,
     ])
-  ];
+  ] as unknown as Expr;
 
   // add uFuzzy, case insensitivity?
 
@@ -95,8 +108,8 @@ const CSVDropper = component<CSVDropperProps>((c) => {
 
             // we dont need to parse dates except during display? they can be sorted by timestamp?
             s.cols.forEach(c => {
-              if (c.type === SchemaColumnType.Date)
-                  c.type = SchemaColumnType.String;
+              if (c.type === 'd')
+                  c.type = 's';
             });
 
             let p = initParser(s);
@@ -130,6 +143,16 @@ const CSVDropper = component<CSVDropperProps>((c) => {
   `;
 });
 
+// const HeaderCell = component<Table>((c) => {
+//   return  (props) => html`
+//     <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'}>
+//       <div class="col-resize" @mousedown=${onDowns[i]} />
+//       ${c.name}
+//       ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}
+//     </th>
+//   `;
+// });
+
 const Table = component<Table>((c) => {
   let dom: HTMLElement;
   const setDom = (el: HTMLElement) => { dom = el; };
@@ -142,21 +165,22 @@ const Table = component<Table>((c) => {
   let sortDir: number[] = Array(cols.length).fill(0);
   let sortPos: number[] = Array(cols.length).fill(0);
 
-  // compiled fns
-  let sortFn;
-  let filtFn;
-
   let dataFilt = table.data;
   let dataSort = table.data;
-  let data     = table.data; // final sorted, filtered, grouped
 
-  let onClickCol = (idx: number) => {
+  let onClickCol = (idx: number, shiftKey: boolean) => {
     let dir = sortDir[idx];
     let pos = sortPos[idx];
 
     if (dir == 1)
       dir = -1;
     else if (dir == 0) {
+      if (!shiftKey) {
+        // reset all sorts
+        sortPos.fill(0);
+        sortDir.fill(0);
+      }
+
       dir = 1;
       pos = Math.max(...sortPos) + 1;
     }
@@ -176,24 +200,17 @@ const Table = component<Table>((c) => {
   };
 
   let reFilt = () => {
-    filtFn = compileMatcherStringTuples(filts);
-
-    if (filtFn == null)
-      dataFilt = table.data;
-    else
-      dataFilt = filtFn(table.data);
-
+    dataFilt = compileMatcherStringTuples(filts)(table.data);
     reSort();
-    invalidate(c);
   };
 
   let reSort = () => {
-    sortFn = compileSorterTuples(cols, sortPos, sortDir, true);
+    let sortFn = compileSorterTuples(cols, sortPos, sortDir);
 
     if (sortFn == null)
-      data = dataSort = dataFilt;
+      dataSort = dataFilt;
     else
-      data = dataSort = dataFilt.slice().sort(sortFn);
+      dataSort = dataFilt.slice().sort(sortFn);
 
     // when to do this?
     dom.scrollTop = 0;
@@ -215,7 +232,7 @@ const Table = component<Table>((c) => {
   let rowHgt = 0;
   let viewRows = 0;
   // min chunk length and used to estimate row height
-  let chunkLen = Math.min(100, data.length);
+  let chunkLen = Math.min(100, table.data.length);
   let idx0 = 0;
   let colWids = Array(cols.length).fill(null);
 
@@ -253,6 +270,11 @@ const Table = component<Table>((c) => {
     }
   };
 
+  // useLayoutEffect(c, () => {
+  //   for (let colEl of dom.querySelectorAll('.col-names th'))
+  //     console.log(colEl.getBoundingClientRect().width);
+  // })();
+
   useEffect(c, () => {
     // TODO: ensure this is only for vt scroll and resize, and handle hz resize independently (adjust col widths? only when table width 100%?)
     dom.addEventListener('scroll', () => setIdx0());
@@ -269,14 +291,57 @@ const Table = component<Table>((c) => {
     };
   })();
 
-  let onClicks = cols.map((c, i) => () => onClickCol(i));
+  let onClicks = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
   let onChangeFiltOps = cols.map((c, i) => (e: HTMLElementEvent<HTMLSelectElement>) => onChangeFiltOp(i, e.target.value as Op));
   let onChangeFiltVals = cols.map((c, i) => (e: HTMLElementEvent<HTMLInputElement>) => onChangeFiltVal(i, e.target.value));
 
+  // todo: make configurable per column
+  const min = 50;
+  const max = 500;
+
+  let onDowns = cols.map((col, i) => (e: MouseEventInit) => {
+    if (e.button !== 0)
+      return;
+
+    let fromX = e.clientX!;
+    let fromWid = colWids[i];
+
+    let onMove: EventListener = (e: MouseEventInit) => {
+      let newWid = fromWid + (e.clientX! - fromX);
+
+      // clamp
+      if (newWid > max || newWid < min)
+        return;
+
+      // ensure non-zero here
+
+      colWids[i] = newWid;
+
+      // TODO: invaldate only header component, or just th component?
+      invalidate(c);
+    };
+
+    let onClick: EventListener = (e: MouseEventInit) => {
+      offWinCap('mousemove', onMove);
+      offWinCap('click', onClick);
+      haltEvent(e as Event);
+    };
+
+    onWinCap('mousemove', onMove);
+    onWinCap('click', onClick);
+    haltEvent(e as Event);
+  });
+
+  const Row  = component<string[]>((c) => row => html`<tr>${row.map(Cell)}</tr>`, () => true);
+  const Cell = component<string  >((c) => col => html`<td .textContent=${col}/>`, () => true);
+
+  // col resize/drag
+  // let onMouseDowns = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
+
   return () => {
-    let chunk = data.slice(idx0, idx0 + chunkLen);
+    let chunk = dataSort.slice(idx0, idx0 + chunkLen);
     // TODO: this will only change with filters
-    let totalHgt = data.length * rowHgt;
+    let totalHgt = dataSort.length * rowHgt;
 
     let padTop = rowHgt == 0 ? 0 : idx0 * rowHgt;
     let padBtm = rowHgt == 0 ? 0 : totalHgt - Math.min(totalHgt, rowHgt * (idx0 + chunkLen));
@@ -288,6 +353,7 @@ const Table = component<Table>((c) => {
             <tr class="col-names">
               ${cols.map((c, i) => html`
                 <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'}>
+                  <div class="col-resize" @mousedown=${onDowns[i]} />
                   ${c.name}
                   ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}
                 </th>
@@ -309,11 +375,7 @@ const Table = component<Table>((c) => {
           </thead>
           <tbody>
             <tr ~height=${`${padTop}px`}/>
-            ${chunk.map(row => html`
-              <tr>
-                ${row.map((col) => html`<td .textContent=${col}/>`)}
-              </tr>
-            `)}
+            ${List(chunk, (row, i) => idx0 + i, Row)}
             <tr ~height=${`${padBtm}px`}/>
           </tbody>
         </table>

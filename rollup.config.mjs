@@ -31,17 +31,17 @@ export default [
       nodeResolve(),
       typescript(),
       ivi({}),
-      minify(
-        defineRollupSwcMinifyOption({
-          compress: {
-            inline: 0,
-            keep_infinity: true,
-          },
-          toplevel: true,
-          module: true,
-          sourceMap: true,
-        })
-      ),
+      // minify(
+      //   defineRollupSwcMinifyOption({
+      //     compress: {
+      //       inline: 0,
+      //       keep_infinity: true,
+      //     },
+      //     toplevel: true,
+      //     module: true,
+      //     sourceMap: true,
+      //   })
+      // ),
       copyCss()
     ],
   },

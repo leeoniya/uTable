@@ -236,6 +236,8 @@ const Table = component<Table>((c) => {
   let idx0 = 0;
   let colWids = Array(cols.length).fill(null);
 
+  let overscanRows = 15;
+
   const incrRoundDn = (num: number, incr: number) => Math.floor(num / incr) * incr;
 
   let sync = () => {
@@ -256,13 +258,13 @@ const Table = component<Table>((c) => {
     }
 
     viewRows = Math.floor(viewHgt / rowHgt);
-    chunkLen = 2 * viewRows;
+    chunkLen = viewRows + 2 * overscanRows;
 
     // console.log(chunkLen);
   };
 
   let setIdx0 = (force = false) => {
-    let idx1 = incrRoundDn(dom.scrollTop / rowHgt, viewRows);
+    let idx1 = Math.max(0, incrRoundDn(dom.scrollTop / rowHgt, overscanRows));
 
     if (force || idx0 != idx1) {
       idx0 = idx1;

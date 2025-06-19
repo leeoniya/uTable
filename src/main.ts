@@ -344,6 +344,9 @@ const Table = component<Table>((c) => {
   // col resize/drag
   // let onMouseDowns = cols.map((c, i) => (e: MouseEvent) => onClickCol(i, e.shiftKey));
 
+  // 1fr 1fr max-content
+  let gridTplCols = cols.map(c => '1fr').join(' ');
+
   return () => {
     let chunk = dataSort.slice(idx0, idx0 + chunkLen);
     // TODO: this will only change with filters
@@ -354,7 +357,7 @@ const Table = component<Table>((c) => {
 
     return html`
       <div class="scroll-wrap" ${setDom}>
-        <table ~table-layout=${rowHgt > 0 ? 'fixed' : 'auto'}>
+        <table ~grid-template-columns=${gridTplCols}>
           <thead>
             <tr class="col-names">
               ${cols.map((c, i) => html`

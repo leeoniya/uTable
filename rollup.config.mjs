@@ -4,20 +4,19 @@ import { ivi } from "@ivi/rollup-plugin";
 import { minify, defineRollupSwcMinifyOption } from 'rollup-plugin-swc3'
 import fs from 'fs';
 
-const name = 'main';
-
 const copyCss = () => {
   return {
     name: 'copyCss',
     closeBundle: () => {
-      fs.copyFileSync(`./src/${name}.css`, './dist/styles.css');
+      fs.copyFileSync(`./src/main.css`, './dist/styles.css');
+      fs.copyFileSync(`./src/modern-normalize.css`, './dist/modern-normalize.css');
     },
   }
 };
 
 export default [
   {
-    input: `./src/${name}.ts`,
+    input: `./src/main.ts`,
     output: {
       file: "./dist/bundle.min.js",
       format: "es",

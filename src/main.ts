@@ -33,6 +33,10 @@ function offWinCap(type: string, fn: EventListener) {
   window.removeEventListener(type, fn, {capture: true});
 }
 
+function clamp(val: number, min: number, max: number) {
+  return val < min ? min : val > max ? max : val;
+}
+
 interface CSVDropperProps {
   setData: (table: Table | null) => void;
 }
@@ -254,7 +258,7 @@ const Table = component<Table>((c) => {
 
       let i = 0;
       for (let colEl of dom.querySelectorAll('.col-names th'))
-        colWids[i++] = colEl.getBoundingClientRect().width;
+        colWids[i++] = clamp(colEl.getBoundingClientRect().width, min, max);
     }
 
     viewRows = Math.floor(viewHgt / rowHgt);
@@ -354,7 +358,7 @@ const Table = component<Table>((c) => {
           <thead>
             <tr class="col-names">
               ${cols.map((c, i) => html`
-                <th @click=${onClicks[i]} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'} tabindex="0">
+                <th @click=${onClicks[i]} ~min-width=${`${min}px`} ~max-width=${`${max}px`} ~width=${rowHgt > 0 ? `${colWids[i]}px` : 'auto'} tabindex="0">
                   <div class="col-resize" @mousedown=${onDowns[i]} />
                   ${c.name}
                   ${sortDir[i] != 0 ? html`<span class="col-sort">${sortDir[i] == 1 ? `▲` : '▼'}<sup>${sortPos[i]}</sup></span>` : null}

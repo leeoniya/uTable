@@ -33,7 +33,8 @@ table {
 }
 
 tr {
-  height: 18px;
+  /* height: 18px; */
+  height: 35px;
 }
 
 th,

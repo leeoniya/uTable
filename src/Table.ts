@@ -210,13 +210,14 @@ export const Table = component<Table>((c) => {
   // 1fr 1fr max-content
   let gridTplCols = cols.map(c => '1fr').join(' ');
 
-//   let style = document.createElement('style');
-//   document.head.appendChild(style);
-//   let sheet = style.sheet!;
+  // // to avoid setting col-specific styles on each cell, generate and manage an associated stylesheet for this specific table id
+  // let style = document.createElement('style');
+  // document.head.appendChild(style);
+  // let sheet = style.sheet!;
 
-//   cols.forEach((c, i) => {
-//     sheet.insertRule(`#snafu tbody td:nth-child(${i+1}) { color: pink; text-align: right; }`, i);
-//   });
+  // cols.forEach((c, i) => {
+  //   sheet.insertRule(`#snafu tbody td:nth-child(${i+1}) { color: pink; text-align: right; }`, i);
+  // });
 
   return () => {
     let chunk = dataSort.slice(idx0, idx0 + chunkLen);

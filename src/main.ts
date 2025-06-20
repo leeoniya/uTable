@@ -12,17 +12,3 @@ const App = component((c) => {
 });
 
 update(createRoot(document.body), App());
-
-
-/*
-// to avoid setting col-specific styles on each cell, generate and manage an associated stylesheet for this specific table id
-
-#table123 tbody td:nth-child(5) {
-  text-align: right;
-  background: silver;
-}
-
-var style = document.createElement('style');
-document.head.appendChild(style);
-var styleSheet = style.sheet // Will give you the associated CSSStyleSheet
-*/

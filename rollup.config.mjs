@@ -41,7 +41,7 @@ export default [
       //     sourceMap: true,
       //   })
       // ),
-      copyCss()
+      copyCss(),
     ],
   },
 ];

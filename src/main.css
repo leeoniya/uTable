@@ -30,6 +30,10 @@ tr {
 tr {
   /* height: 18px; */
   height: 35px;
+
+  &.spacer {
+    pointer-events: none;
+  }
 }
 
 th,
@@ -66,6 +70,11 @@ tbody tr:hover {
   background: #bbdefb;
 }
 
+.col-names {
+  height: auto;
+  /* text-align: center; */
+}
+
 .col-names th {
   position: relative;
   cursor: pointer;
@@ -81,24 +90,27 @@ tbody tr:hover {
   width: 5px;
   height: 100%;
 
+  border-right: 2px solid #ccc;
+
   cursor: col-resize;
 }
 
+.col-filts {
+  height: 24px;
+}
+
 .col-filts th {
-  padding: 0 6px 6px 6px;
+  display: flex;
+  padding: 0;
 }
 
 .col-filts select {
-  position: absolute;
-  background: none;
-  padding: 2px;
+  width: 35px;
 }
 
 .col-filts input {
-  padding-left: 40px;
-  width: 100%;
-  min-width: 100px;
-  max-width: 100%;
+  flex: 1;
+  min-width: 0;
 }
 
 .col-sort {

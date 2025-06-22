@@ -255,9 +255,9 @@ export const Table = component<Table>((c) => {
             </tr>
           </thead>
           <tbody>
-            <tr ~height=${`${padTop}px`}/>
+            <tr class="spacer" ~height=${`${padTop}px`}/>
             ${List(chunk, row => row, Row)}
-            <tr ~height=${`${padBtm}px`}/>
+            <tr class="spacer" ~height=${`${padBtm}px`}/>
           </tbody>
         </table>
       </div>

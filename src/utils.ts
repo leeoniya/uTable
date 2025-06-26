@@ -1,4 +1,4 @@
-import { Expr, compileFilter } from 'uexpr';
+import { Expr, initFilter } from 'uexpr';
 import type { SchemaColumn } from "udsv";
 
 type Sorter = [pos: number, colIdx: number, sortDir: number];
@@ -54,7 +54,7 @@ export const compileMatcherStringTuples = (rules: Expr[]) => {
   // add uFuzzy, case insensitivity?
 
   // todo: make empty value acceptable, (isNull, falsy, cmp against explicit empty, etc)
-  return compileFilter<string[]>(rules2);
+  return initFilter<string[]>(rules2);
 };
 
 export function haltEvent(e: Event) {
